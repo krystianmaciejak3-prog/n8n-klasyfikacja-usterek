@@ -24,3 +24,8 @@ Oba przykłady przetestowano pomyślnie.
 
 ## Bezpieczeństwo
 Projekt ma charakter edukacyjny. AI wspomaga klasyfikację zgłoszeń, ale nie steruje maszynami. Ostateczne decyzje podejmuje wykwalifikowany pracownik utrzymania ruchu.
+
+
+## Schemat automatu n8n
+
+![Schemat n8n](Zrzut%20ekranu%202026-11-06%20112233.png)
