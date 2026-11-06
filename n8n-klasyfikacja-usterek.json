@@ -1,0 +1,231 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        0
+      ],
+      "id": "fc9f7153-e2f1-4d0e-995a-5045946eb88b",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c7be3164-808e-40de-a97e-e8213879d7f5",
+              "name": "usterka",
+              "value": "Na obudowie przenośnika taśmowego pojawiło się niewielkie zarysowanie lakieru. Maszyna pracuje prawidłowo, nie ma nietypowych dźwięków ani przegrzewania.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -96,
+        0
+      ],
+      "id": "ff16942e-7bad-40cf-9b53-570f94624762",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Oceń pilność zgłoszenia usterki maszyny.\n\nOpis usterki: {{ $json.usterka }}\n\nOdpowiedz w pierwszej linii wyłącznie:\nPILNE lub NIEPILNE\n\nW drugiej linii krótko uzasadnij ocenę.\n\nJeśli nie masz pewności, wybierz PILNE.\nNie wydawaj poleceń sterowania maszyną.",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "Jesteś asystentem utrzymania ruchu. Analizujesz zgłoszenia usterek maszyn. Nie podejmujesz decyzji o uruchomieniu ani zatrzymaniu maszyny. Ostateczna decyzja należy do wykwalifikowanego pracownika."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        80,
+        0
+      ],
+      "id": "372535d3-eb77-4608-9f2f-58f56ac887ff",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "qwen2.5:1.5b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        384,
+        208
+      ],
+      "id": "cf824e02-1150-4795-a274-8a2e4252bc4b",
+      "name": "Ollama Chat Model"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "3614fca5-20c5-4e22-a80a-af569576d085",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "PILNE",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        384,
+        0
+      ],
+      "id": "c661adf7-616d-46a6-9388-128760158ea8",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "59512f99-c3df-404d-8689-a3c266e1459f",
+              "name": "komunikat",
+              "value": "PILNE ZGŁOSZENIE – wymagana weryfikacja przez pracownika utrzymania ruchu. AI wykryło możliwe zagrożenie. Decyzję o dalszym postępowaniu podejmuje wykwalifikowany pracownik.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        576,
+        -16
+      ],
+      "id": "e0655aad-3f51-4ca0-bf47-617d6aa49582",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8d9a99f1-158d-4369-9a44-f0e768c44939",
+              "name": "komunikat",
+              "value": "ZGŁOSZENIE NIEPILNE – przekazać do planowej weryfikacji przez pracownika utrzymania ruchu. Ostateczną ocenę usterki wykonuje człowiek.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        608,
+        160
+      ],
+      "id": "6b0aea56-297f-4a8e-9e7c-a80397d6fed8",
+      "name": "Edit Fields2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "nodeGroups": [],
+  "tags": []
+}
