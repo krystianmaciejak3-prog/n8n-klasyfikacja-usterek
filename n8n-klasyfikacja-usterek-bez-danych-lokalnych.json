@@ -1,0 +1,370 @@
+{
+  "name": "Klasyfikacja usterek AI - wersja do publikacji",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        0
+      ],
+      "id": "fc9f7153-e2f1-4d0e-995a-5045946eb88b",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c7be3164-808e-40de-a97e-e8213879d7f5",
+              "name": "usterka",
+              "value": "Silnik przenośnika taśmowego mocno się przegrzewa, pojawia się dym i nietypowy hałas. Istnieje zagrożenie dla pracowników.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -96,
+        0
+      ],
+      "id": "ff16942e-7bad-40cf-9b53-570f94624762",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Jesteś asystentem utrzymania ruchu. Oceniasz pilność zgłoszeń usterek maszyn.\n\nOpis usterki:\n{{ $json.usterka }}\n\nZasady:\n1. NIEPILNE – drobne uszkodzenia kosmetyczne, np. zarysowanie lakieru, jeśli maszyna pracuje prawidłowo i nie ma oznak zagrożenia.\n2. PILNE – dym, pożar, przegrzewanie, nietypowe drgania, uszkodzenia osłon, zagrożenie dla ludzi lub poważne nieprawidłowości pracy.\n3. Gdy opis wskazuje na możliwe zagrożenie, ale brakuje informacji, wybierz PILNE i zaznacz niepewność.\n4. Nie wydawaj poleceń uruchomienia ani naprawy maszyny.\n\nOdpowiedz dokładnie w dwóch liniach:\nPierwsza linia: PILNE albo NIEPILNE\nDruga linia: krótkie uzasadnienie po polsku.\n\nNie dodawaj żadnego tekstu przed pierwszą linią.\nOstateczną ocenę wykonuje wykwalifikowany pracownik.",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "Jesteś asystentem utrzymania ruchu. Klasyfikujesz zgłoszenia usterek maszyn.  NIEPILNE: drobne zarysowanie lakieru, gdy maszyna działa prawidłowo, bez przegrzewania, hałasu i innych oznak zagrożenia.  PILNE: dym, pożar, przegrzewanie, niebezpieczne drgania, uszkodzone osłony lub zagrożenie dla ludzi.  Przykład: Opis: Niewielkie zarysowanie lakieru, maszyna pracuje prawidłowo. Odpowiedź: NIEPILNE Brak oznak zagrożenia, wymagana planowa kontrola.  Pierwsza linia odpowiedzi musi zawierać wyłącznie PILNE albo NIEPILNE. Druga linia musi zawierać krótkie uzasadnienie.  Gdy istnieje podejrzenie zagrożenia, wybierz PILNE. Nie wydawaj poleceń sterowania maszyną. Ostateczną decyzję podejmuje wykwalifikowany pracownik."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        80,
+        0
+      ],
+      "id": "372535d3-eb77-4608-9f2f-58f56ac887ff",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "qwen3.5:2b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        384,
+        208
+      ],
+      "id": "cf824e02-1150-4795-a274-8a2e4252bc4b",
+      "name": "Ollama Chat Model"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "3614fca5-20c5-4e22-a80a-af569576d085",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "PILNE",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        384,
+        0
+      ],
+      "id": "c661adf7-616d-46a6-9388-128760158ea8",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "59512f99-c3df-404d-8689-a3c266e1459f",
+              "name": "komunikat",
+              "value": "PILNE ZGŁOSZENIE – wymagana weryfikacja przez pracownika utrzymania ruchu. AI wykryło możliwe zagrożenie. Decyzję o dalszym postępowaniu podejmuje wykwalifikowany pracownik.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        576,
+        -16
+      ],
+      "id": "e0655aad-3f51-4ca0-bf47-617d6aa49582",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8d9a99f1-158d-4369-9a44-f0e768c44939",
+              "name": "komunikat",
+              "value": "ZGŁOSZENIE NIEPILNE – przekazać do planowej weryfikacji przez pracownika utrzymania ruchu. Ostateczną ocenę usterki wykonuje człowiek.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        608,
+        160
+      ],
+      "id": "6b0aea56-297f-4a8e-9e7c-a80397d6fed8",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "opis_usterki": "={{ $('Edit Fields').first().json.usterka }}",
+            "pilnosc": "={{ 'PILNE' }}",
+            "uzasadnienie_ai": "={{ $('Basic LLM Chain').first().json.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "opis_usterki",
+              "displayName": "opis_usterki",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pilnosc",
+              "displayName": "pilnosc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "uzasadnienie_ai",
+              "displayName": "uzasadnienie_ai",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        -16
+      ],
+      "id": "59a79c6d-e6ea-42d9-bcb5-a211fad7100b",
+      "name": "Insert row"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "opis_usterki": "={{ $('Edit Fields').first().json.usterka }}",
+            "pilnosc": "={{ 'NIEPILNE' }}",
+            "uzasadnienie_ai": "={{ $('Basic LLM Chain').first().json.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "opis_usterki",
+              "displayName": "opis_usterki",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pilnosc",
+              "displayName": "pilnosc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "uzasadnienie_ai",
+              "displayName": "uzasadnienie_ai",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        832,
+        160
+      ],
+      "id": "5939f164-6585-409b-ad4d-87a9e74789b9",
+      "name": "Insert row1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Insert row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "nodeGroups": [],
+  "tags": []
+}
